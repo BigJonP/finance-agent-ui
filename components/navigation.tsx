@@ -12,7 +12,7 @@ export function Navigation() {
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center px-4">
         <div className="mr-4 flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+          <Link href="/dashboard" className="mr-6 flex items-center space-x-2">
             <span className="font-bold text-xl">Finance Agent</span>
           </Link>
         </div>
@@ -20,11 +20,11 @@ export function Navigation() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <div className="flex space-x-2">
               <Button
-                variant={pathname === '/' ? 'default' : 'ghost'}
+                variant={(pathname === '/' || pathname === '/dashboard') ? 'default' : 'ghost'}
                 asChild
                 className="w-full md:w-auto"
               >
-                <Link href="/">Dashboard</Link>
+                <Link href="/dashboard">Dashboard</Link>
               </Button>
               <Button
                 variant={pathname === '/profile' ? 'default' : 'ghost'}

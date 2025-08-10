@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { HoldingsTable } from '@/components/holdings-table'
 import { AddHoldingForm } from '@/components/add-holding-form'
 import { AdviceCard } from '@/components/advice-card'
+import { getCurrentUser, signOut, checkAuthStatus } from '@/lib/auth'
 import { type User as UserType } from '@/lib/api'
 
 export default function DashboardPage() {
@@ -16,27 +17,29 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
 
   useEffect(() => {
-    const storedUserId = localStorage.getItem('userId')
-    const storedUsername = localStorage.getItem('username')
-    const storedEmail = localStorage.getItem('email')
+    // Check JWT authentication status first
+    if (!checkAuthStatus()) {
+      router.push('/')
+      return
+    }
     
-    if (storedUserId && storedUsername && storedEmail) {
-      setUserId(storedUserId)
-      setCurrentUser({
-        id: storedUserId,
-        username: storedUsername,
-        email: storedEmail,
-      })
+    // Get user data from localStorage (for backward compatibility)
+    const user = getCurrentUser()
+    if (user) {
+      setUserId(user.id)
+      setCurrentUser(user)
     } else {
-      // Redirect to home if not authenticated
+      // If no user data, redirect to home for authentication
       router.push('/')
     }
   }, [router])
 
   const handleSignOut = () => {
-    localStorage.removeItem('userId')
-    localStorage.removeItem('username')
-    localStorage.removeItem('email')
+    // Use the auth utility to sign out
+    signOut()
+    
+    setUserId('')
+    setCurrentUser(null)
     router.push('/')
   }
 

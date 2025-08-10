@@ -14,13 +14,11 @@ export default function ProfilePage() {
   const [mode, setMode] = useState<'signin' | 'create'>('signin')
   const [currentUser, setCurrentUser] = useState<UserType | null>(null)
   
-  // Form states
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  // Load user from localStorage on mount
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId')
     const storedUsername = localStorage.getItem('username')
@@ -37,7 +35,7 @@ export default function ProfilePage() {
 
   const createMutation = useMutation({
     mutationFn: userApi.create,
-    onSuccess: (data) => {
+    onSuccess: (data: UserType) => {
       localStorage.setItem('userId', data.id)
       localStorage.setItem('username', data.username)
       localStorage.setItem('email', data.email)
@@ -51,11 +49,11 @@ export default function ProfilePage() {
 
   const signInMutation = useMutation({
     mutationFn: userApi.signIn,
-    onSuccess: (data) => {
-      localStorage.setItem('userId', data.id)
-      localStorage.setItem('username', data.username)
-      localStorage.setItem('email', data.email)
-      setCurrentUser(data)
+    onSuccess: (data: { user: UserType; access_token: string; refresh_token: string; token_type: string }) => {
+      localStorage.setItem('userId', data.user.id)
+      localStorage.setItem('username', data.user.username)
+      localStorage.setItem('email', data.user.email)
+      setCurrentUser(data.user)
       // Clear form
       setUsername('')
       setPassword('')
@@ -231,10 +229,10 @@ export default function ProfilePage() {
           ) : (
             <form onSubmit={handleCreateSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="create-name">Name</Label>
+                <Label htmlFor="create-name">Username</Label>
                 <Input
                   id="create-name"
-                  placeholder="Enter your name"
+                  placeholder="Enter your username"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { TrendingUp } from 'lucide-react'
 import { AuthForm } from '@/components/auth-form'
+import { checkAuthStatus } from '@/lib/auth'
 import { type User as UserType } from '@/lib/api'
 
 export default function HomePage() {
@@ -13,8 +14,8 @@ export default function HomePage() {
   useEffect(() => {
     // Small delay to ensure page is fully loaded before checking auth
     const checkAuth = () => {
-      const storedUserId = localStorage.getItem('userId')
-      if (storedUserId) {
+      // Check JWT authentication status first
+      if (checkAuthStatus()) {
         // Redirect to dashboard if already authenticated
         router.push('/dashboard')
       } else {

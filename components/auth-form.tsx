@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { userApi, type User as UserType } from '@/lib/api'
+import { storeUserData } from '@/lib/auth'
 
 interface AuthFormProps {
   onSuccess: (user: UserType) => void
@@ -27,25 +28,41 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
   const createMutation = useMutation({
     mutationFn: userApi.create,
-    onSuccess: (data) => {
-      localStorage.setItem('userId', data.id)
-      localStorage.setItem('username', data.username)
-      localStorage.setItem('email', data.email)
-      onSuccess(data)
-      setName('')
-      setEmail('')
-      setPassword('')
-      router.push('/dashboard')
+    onSuccess: async (data: UserType) => {
+      try {
+        const signInResponse = await userApi.signIn({
+          username: data.username,
+          password: password,
+        });
+        
+        storeUserData(signInResponse.user);
+        onSuccess(signInResponse.user);
+        
+        setName('');
+        setEmail('');
+        setPassword('');
+        
+        router.push('/dashboard');
+      } catch (signInError) {
+        console.warn('Auto-signin failed after account creation:', signInError);
+        storeUserData(data);
+        onSuccess(data);
+        
+        setName('');
+        setEmail('');
+        setPassword('');
+        
+        router.push('/dashboard');
+      }
     },
   })
 
   const signInMutation = useMutation({
     mutationFn: userApi.signIn,
-    onSuccess: (data) => {
-      localStorage.setItem('userId', data.id)
-      localStorage.setItem('username', data.username)
-      localStorage.setItem('email', data.email)
-      onSuccess(data)
+    onSuccess: (data: { user: UserType; access_token: string; refresh_token: string; token_type: string }) => {
+      // Store user info using auth utilities
+      storeUserData(data.user)
+      onSuccess(data.user)
       setUsername('')
       setPassword('')
       router.push('/dashboard')
@@ -59,7 +76,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     createMutation.mutate({
       name: name.trim(),
       email: email.trim(),
-      password: password.trim(),
+      password,
     })
   }
 
@@ -69,7 +86,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
     signInMutation.mutate({
       username: username.trim(),
-      password: password.trim(),
+      password,
     })
   }
 
@@ -171,10 +188,10 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
           ) : (
             <form onSubmit={handleCreateSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="create-name">Name</Label>
+                <Label htmlFor="create-name">Username</Label>
                 <Input
                   id="create-name"
-                  placeholder="Enter your name"
+                  placeholder="Enter your username"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
